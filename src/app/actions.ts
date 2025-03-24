@@ -62,34 +62,46 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
   // Step 1: Encode the user input keyword (e.g., "vegan") into an embedding
   const userKeywordEmbedding = await encodeSentence(keyword);
 
-  // Step 2: Get the recipes with ingredients matching user input
+  // Create SQL conditions to check if all userIngredients exist in ingredients
   const containsAllIngredients = userIngredients.map(
-    ing => sql`ingredients LIKE ${'%' + ing + '%'}`
+    ing => sql`ingredients LIKE ${'%' + ing + '%'}` 
   );
 
-  // Step 3: Query the database for matching recipes (we'll also select tags_embedding)
   const result = await db.all(
     sql`
-      SELECT id, name, ingredients, tags_embedding,
+      SELECT id, name, ingredients,
       (
         LENGTH(ingredients) - LENGTH(REPLACE(ingredients, ',', '')) + 1
       ) - ${userIngredients.length} AS extraIngredientsCount
       FROM recipes
       WHERE ${sql.join(containsAllIngredients, sql` AND `)}
+      ORDER BY extraIngredientsCount ASC
       LIMIT 10
     `
   );
+
   console.log("printing length of result", result.length);
   result.forEach(element => {
     console.log(element.name)
   });
+
   // Step 4: Calculate similarity between user keyword embedding and recipe tag embeddings
   const recipesWithSimilarity = await Promise.all(result.map(async (recipe) => {
     // Ensure recipe is typed
     const parsedRecipe: Recipe = recipe as Recipe;
 
     // Step 4a: Parse the tags_embedding column (which is stored as a JSON string)
-    const tagsEmbedding = JSON.parse(parsedRecipe.tags_embedding); // Parse JSON string into an array
+    let tagsEmbedding: number[] = [];
+
+    try {
+      // Check if tags_embedding exists and is a valid JSON string
+      if (parsedRecipe.tags_embedding) {
+        tagsEmbedding = JSON.parse(parsedRecipe.tags_embedding); // Parse JSON string into an array
+      }
+    } catch (error) {
+      console.error(`Error parsing tags_embedding for recipe ${parsedRecipe.name}:`, error);
+      tagsEmbedding = []; // Default to empty array if parsing fails
+    }
 
     // Step 4b: Calculate the cosine similarity between the user input embedding and the recipe's tags embedding
     const similarity = cosineSimilarity(userKeywordEmbedding, tagsEmbedding);
@@ -108,6 +120,7 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
 
   return top3Recipes;
 }
+
 
 
 // Fetch all recipes
