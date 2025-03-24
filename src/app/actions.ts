@@ -1,6 +1,6 @@
 'use server'; // Mark this file as containing Server Actions
 
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
 import * as use from '@tensorflow-models/universal-sentence-encoder';
 import { db, recipes } from './lib/db';
 import { like, or, eq, and, sql } from "drizzle-orm";
@@ -8,10 +8,14 @@ import { like, or, eq, and, sql } from "drizzle-orm";
 
 let model: use.UniversalSentenceEncoder | undefined;
 
-// Ensure the model is loaded before calling any methods
 async function loadModel() {
   if (!model) {
+    // Initialize the backend (will default to CPU backend in browser)
+    await tf.setBackend('cpu'); // Use 'cpu' as it's universally available
+    await tf.ready();
+    
     model = await use.load();
+    console.log('Model loaded with backend:', tf.getBackend());
   }
 }
 
@@ -75,7 +79,10 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
       LIMIT 10
     `
   );
-
+  console.log("printing length of result", result.length);
+  result.forEach(element => {
+    console.log(element.name)
+  });
   // Step 4: Calculate similarity between user keyword embedding and recipe tag embeddings
   const recipesWithSimilarity = await Promise.all(result.map(async (recipe) => {
     // Ensure recipe is typed
