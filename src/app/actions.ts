@@ -1,7 +1,42 @@
 'use server'; // Mark this file as containing Server Actions
 
+import * as tf from '@tensorflow/tfjs';
+import * as use from '@tensorflow-models/universal-sentence-encoder';
 import { db, recipes } from './lib/db';
-import { eq } from 'drizzle-orm';
+import { like, or, eq, and, sql } from "drizzle-orm";
+
+
+export type RecipeWithExtra = {
+  id: number;
+  name: string;
+  ingredients: string;
+  extraIngredientsCount: number;
+};
+
+export async function searchRecipes(userIngredients: string[]): Promise<RecipeWithExtra[]> {
+  if (userIngredients.length === 0) return [];
+
+  // Create SQL conditions to check if all userIngredients exist in ingredients
+  const containsAllIngredients = userIngredients.map(
+    ing => sql`ingredients LIKE ${'%' + ing + '%'}`
+  );
+
+  const result = await db.all(
+    sql`
+      SELECT id, name, ingredients,
+      (
+        LENGTH(ingredients) - LENGTH(REPLACE(ingredients, ',', '')) + 1
+      ) - ${userIngredients.length} AS extraIngredientsCount
+      FROM recipes
+      WHERE ${sql.join(containsAllIngredients, sql` AND `)}
+      ORDER BY extraIngredientsCount ASC
+      LIMIT 10
+    `
+  );
+
+  return result as RecipeWithExtra[];
+}
+
 
 // Fetch all recipes
 export async function getFiveRecipes() {
