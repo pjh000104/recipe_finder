@@ -3,7 +3,7 @@ import { searchRecipes} from "./actions";
 export default async function Page() {
   const sampleRecipes = ['oil', 'onion'];
   const keywords = "healthy, vegan"
-  const recipes = await searchRecipes(sampleRecipes);
+  const recipes = await searchRecipes(sampleRecipes,keywords);
 
   return (
     <div>
