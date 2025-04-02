@@ -32,16 +32,6 @@ export interface Recipe {
   tags: string;
 }
 
-// Extend the Recipe type to include extraIngredientsCount
-export type RecipeWithExtra = {
-  id: number;
-  name: string;
-  ingredients: string;
-  extraIngredientsCount: number;
-};
-
-
-
 export async function searchRecipes(userIngredients: string[], keyword: string): Promise<Recipe[]> {
   if (userIngredients.length === 0 && !keyword) return []; // No search criteria
 
