@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+public/faiss-store/faiss.index
+src/app/lib/recipes.db
