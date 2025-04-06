@@ -20,7 +20,7 @@ async function testFaissSearch() {
       embeddings
     );
 
-    console.log("✅ FAISS store loaded successfully");
+    console.log("FAISS store loaded successfully");
 
     // 2. Test queries
     const testQueries = [
@@ -48,7 +48,7 @@ async function testFaissSearch() {
     }
 
   } catch (error) {
-    console.error("❌ Error testing FAISS search:", error);
+    console.error("Error testing FAISS search:", error);
   }
 }
 
