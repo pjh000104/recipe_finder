@@ -39,7 +39,7 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
   const containsAllIngredients = userIngredients.map(
     ing => sql`ingredients LIKE ${'%' + ing + '%'}` 
   );
-
+  console.log("searching for results");
   const result = await db.all(
     sql`
       SELECT id, name, ingredients, tags,
@@ -96,5 +96,3 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
   }
 
 }
-
-
