@@ -1,56 +1,95 @@
 // scripts/test-faiss-search.ts
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
+import { ChatGroq } from "@langchain/groq";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import path from "path";
 import { fileURLToPath } from "url";
+import { db, recipes } from '@/app/lib/db'
+import { like, or, eq, and, sql } from "drizzle-orm";
+
+
+export async function getStepsForRecipe(recipeId: number): Promise<string[]> {
+  
+  const result = await db
+    .select({
+      steps: recipes.steps,
+    })
+    .from(recipes)
+    .where(eq(recipes.id, recipeId));
+
+  if (!result.length) return [];
+
+  const rawSteps = result[0].steps;
+
+  // Split by comma and trim each step
+  const stepsArray = rawSteps.split(",").map((step) => step.trim());
+
+  return stepsArray;
+}
 
 // Get current module path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-async function testFaissSearch() {
+async function testFaissSearch(description: string) {
+  
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  // Initialize Groq LLM (OpenAI-compatible)
+  const llm = new ChatGroq({
+    apiKey: "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",
+    model: "llama-3.3-70b-versatile", // Or llama3-8b-8192, gemma-7b-it, etc.
+  });
+
   try {
     // 1. Load your FAISS store
     const embeddings = new HuggingFaceTransformersEmbeddings({
-      model: "Xenova/all-MiniLM-L6-v2" 
+      model: "Xenova/all-MiniLM-L6-v2",
     });
-    
+
     const store = await FaissStore.load(
       path.join(__dirname, "../public/faiss-store"),
       embeddings
     );
 
-    console.log("FAISS store loaded successfully");
+    console.log("✅ FAISS store loaded successfully");
 
     // 2. Test queries
-    const testQueries = [
-      "chicken recipe",
-      "vegetarian pasta",
-      "quick dessert",
-      "healthy breakfast"
-    ];
 
-    // 3. Search and log results
-    for (const query of testQueries) {
-      console.log(`\n🔍 Searching for: "${query}"`);
-      
-      const results = await store.similaritySearchWithScore(query, 3);
-      
-      results.forEach(([doc, score], i) => {
-        console.log(
-          `#${i + 1}: ${doc.metadata.name}\n` +
-          `ID: ${doc.metadata.id}\n` +
-          `Score: ${score.toFixed(4)}\n` +
-          `Content: ${doc.pageContent}\n` +
-          "-".repeat(40)
-        );
-      });
+    console.log(`\n🔍 Query: "${description}"`);
+
+    const results = await store.similaritySearch(description, 10);
+
+    const contextParts = [];
+    
+    for (let i = 0; i < results.length; i++) {
+      const doc = results[i];
+      const id = doc.metadata.id;
+    
+      // 🔍 Query the steps from DB
+      const stepsFromDB = await getStepsForRecipe(id);
+      const formattedSteps = stepsFromDB
+      .map((step, idx) => `Step ${idx + 1}: ${step}`)
+      .join("\n");
+    
+      contextParts.push(
+        `Recipe #${i + 1} (ID: ${id}, Name: ${doc.metadata.name}):\n${doc.pageContent}\n\nSteps:\n${formattedSteps}`
+      );
     }
+    
+    const context = contextParts.join("\n\n");
 
+    const response = await llm.invoke([
+      new SystemMessage("You are a helpful cooking assistant. Based on the provided recipes and their preparation steps, find the best match and explain why."),
+      new HumanMessage(`User Query: "${description}"\n\nAvailable Recipes:\n${context}\n\nGive me the best three match and explain why.`)
+    ]);
+
+    console.log(`🤖 Response:\n${response.text}`);
+
+    
   } catch (error) {
-    console.error("Error testing FAISS search:", error);
+    console.error("Error testing FAISS search with Groq RAG:", error);
   }
 }
 
-// Run the test
-testFaissSearch();
+testFaissSearch("healthy garlic chicken");

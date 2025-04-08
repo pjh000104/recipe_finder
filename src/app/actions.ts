@@ -3,7 +3,6 @@
 import { db, recipes } from './lib/db';
 import { like, or, eq, and, sql } from "drizzle-orm";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
-import { fileURLToPath } from "url";
 
 
 
@@ -97,4 +96,94 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
 
 }
 
+
+// scripts/test-supabase-search.ts
+import { ChatGroq } from "@langchain/groq";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createClient } from '@supabase/supabase-js';
+
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export async function getStepsForRecipe(recipeId: number): Promise<string[]> {
+  const result = await db
+    .select({
+      steps: recipes.steps,
+    })
+    .from(recipes)
+    .where(eq(recipes.id, recipeId));
+
+  if (!result.length) return [];
+
+  const rawSteps = result[0].steps;
+  const stepsArray = rawSteps.split(",").map((step) => step.trim());
+  return stepsArray;
+}
+
+export async function testSupabaseSearch(description: string) {
+  // Initialize Groq LLM (OpenAI-compatible)
+  const llm = new ChatGroq({
+    apiKey: process.env.GROQ_API_KEY, // your Groq API key
+    model: "llama-3.3-70b-versatile",
+  });
+
+  try {
+    // 1. Initialize embeddings
+    const embeddings = new HuggingFaceTransformersEmbeddings({
+      model: "Xenova/all-MiniLM-L6-v2",
+    });
+
+    // 2. Generate embedding for the query
+    const queryEmbedding = await embeddings.embedQuery(description);
+
+    // 3. Perform vector search in Supabase
+    const { data: results, error } = await supabase.rpc('search_recipes', {
+      query_embedding: queryEmbedding,
+      similarity_threshold: 0.6,
+      match_count: 10
+    });
+    console.log("logging 10 recipies");
+    console.log(results);
+    if (error) throw error;
+
+    console.log("✅ Supabase vector search completed successfully");
+
+    // 4. Process results
+    const contextParts = [];
+    
+    for (let i = 0; i < results.length; i++) {
+      const recipe = results[i];
+      const id = recipe.id;
+    
+      // Get steps from DB
+      const stepsFromDB = await getStepsForRecipe(id);
+      const formattedSteps = stepsFromDB
+        .map((step, idx) => `Step ${idx + 1}: ${step}`)
+        .join("\n");
+    
+      contextParts.push(
+        `Recipe #${i + 1} (ID: ${id}, Name: ${recipe.name}):\n${recipe.description}\n\nSteps:\n${formattedSteps}`
+      );
+ 
+    }
+    console.log("logging context")
+    console.log(contextParts);
+    
+    const context = contextParts.join("\n\n");
+
+    // 5. Get LLM response
+    const response = await llm.invoke([
+      new SystemMessage("You are a helpful cooking assistant. Based on the provided recipes and their preparation steps, find the best match and explain why."),
+      new HumanMessage(`User Query: "${description}"\n\nAvailable Recipes:\n${context}\n\nGive me the best three match and explain why.`)
+    ]);
+
+    console.log(`🤖 Response:\n${response.text}`);
+
+  } catch (error) {
+    console.error("Error testing Supabase vector search with Groq RAG:", error);
+  }
+}
 
