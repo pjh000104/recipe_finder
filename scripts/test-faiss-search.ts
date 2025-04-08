@@ -37,7 +37,7 @@ async function testFaissSearch(description: string) {
 
   // Initialize Groq LLM (OpenAI-compatible)
   const llm = new ChatGroq({
-    apiKey: "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",
+    apiKey: "",
     model: "llama-3.3-70b-versatile", // Or llama3-8b-8192, gemma-7b-it, etc.
   });
 
