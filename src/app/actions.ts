@@ -149,7 +149,7 @@ export async function testSupabaseSearch(description: string) {
     console.log(results);
     if (error) throw error;
 
-    console.log("✅ Supabase vector search completed successfully");
+    console.log("Supabase vector search completed successfully");
 
     // 4. Process results
     const contextParts = [];
