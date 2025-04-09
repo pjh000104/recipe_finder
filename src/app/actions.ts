@@ -180,7 +180,7 @@ export async function testSupabaseSearch(description: string) {
       new HumanMessage(`User Query: "${description}"\n\nAvailable Recipes:\n${context}\n\nGive me the best three match and explain why.`)
     ]);
 
-    console.log(`🤖 Response:\n${response.text}`);
+    console.log(`Response:\n${response.text}`);
 
   } catch (error) {
     console.error("Error testing Supabase vector search with Groq RAG:", error);
