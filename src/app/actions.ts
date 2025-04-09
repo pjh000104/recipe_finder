@@ -97,7 +97,7 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
 }
 
 
-// scripts/test-supabase-search.ts
+
 import { ChatGroq } from "@langchain/groq";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createClient } from '@supabase/supabase-js';
@@ -123,7 +123,7 @@ export async function getStepsForRecipe(recipeId: number): Promise<string[]> {
   return stepsArray;
 }
 
-export async function testSupabaseSearch(description: string) {
+export async function testSupabaseSearch(description: string): Promise<string> {
   // Initialize Groq LLM (OpenAI-compatible)
   const llm = new ChatGroq({
     apiKey: process.env.GROQ_API_KEY, // your Groq API key
@@ -181,9 +181,10 @@ export async function testSupabaseSearch(description: string) {
     ]);
 
     console.log(`Response:\n${response.text}`);
-
+    return (response.text);
   } catch (error) {
     console.error("Error testing Supabase vector search with Groq RAG:", error);
+    return "";
   }
 }
 

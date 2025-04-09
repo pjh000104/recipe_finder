@@ -1,19 +1,9 @@
-"use client"
-import { testSupabaseSearch } from '@/app/actions';
+"use server"
+import RagForm from "../components/RagForm"
 
-export default function SamplePage() {
-  async function handleSearch() {
-    try {
-      const result = await testSupabaseSearch("healthy chicken dish");
-      console.log(result);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+export default async function SamplePage() {
 
   return (
-    <div>
-      <button onClick={handleSearch}>Test Search</button>
-    </div>
+    <RagForm></RagForm>
   );
 }
