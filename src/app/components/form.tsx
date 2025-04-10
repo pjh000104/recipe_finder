@@ -1,6 +1,7 @@
 "use client";
 import { searchRecipes,Recipe } from "../actions";
 import { useState } from "react";
+import RecipeList from "./RecipeList";
 
 export default function Form() {
     const [ingredients, setIngredients] = useState<string>("");
@@ -51,12 +52,7 @@ export default function Form() {
 
             {!loading && recipes.length > 0 && (
                 <div>
-                    <h2>Recipes:</h2>
-                    <ul>
-                        {recipes.map((recipe, index) => (
-                            <li key={index}>{recipe.name}</li>
-                        ))}
-                    </ul>
+                    <RecipeList recipes = {recipes}/>
                 </div>
             )}
         </div>
