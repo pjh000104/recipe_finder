@@ -102,7 +102,6 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
 import { ChatGroq } from "@langchain/groq";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { createClient } from '@supabase/supabase-js';
-import { StringPromptValue } from '@langchain/core/prompt_values';
 
 
 // Initialize Supabase client

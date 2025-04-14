@@ -8,7 +8,24 @@ export default function Form() {
     const [keywords, setKeywords] = useState<string>("");
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+    function handleRecipeClick(recipe: Recipe) {
+        const existing = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
+
+        const isAlreadySaved = existing.some((r: Recipe) => r.name === recipe.name);
+        if (!isAlreadySaved) {
+            const updated = [...existing, recipe];
+            localStorage.setItem("savedRecipes", JSON.stringify(updated));
+            setSaveMessage(`${recipe.name} has been saved!`);
+        } else {
+            setSaveMessage(`${recipe.name} is already saved.`);
+        }
+
+        setTimeout(() => setSaveMessage(null), 3000); 
+    }
+
+    
     function onIngredientsChange(e: React.ChangeEvent<HTMLInputElement>) {
         setIngredients(e.target.value);
     }
@@ -31,29 +48,39 @@ export default function Form() {
     }
 
     return (
-        <div>
-            <form onSubmit={onFormSubmit}>
+        <div className="flex flex-col items-center justify-center w-full gap-4">
+            <form onSubmit={onFormSubmit} >
                 <p>Input ingredients</p>
-                <input 
+
+                <input
+                    className=" input shadow-lg focus:border-2 border-gray-300 px-5 py-2 rounded-xl w-56  outline-none" 
                     type="text" 
                     value={ingredients} 
                     onChange={onIngredientsChange} 
                 />
                 <p>Input keywords</p>
                 <input 
+                    className="input shadow-lg focus:border-2 border-gray-300 px-5 py-2 rounded-xl w-56  outline-none"
                     type="text" 
                     value={keywords} 
                     onChange={onKeywordsChange} 
                 />
-                <button type="submit">Submit</button>
+                <button className=" ml-3  p-1 cursor-pointer transition-all bg-blue-500 text-white px-3 py-1 rounded-lg
+                                border-blue-600
+                                border-b-[4px]" type="submit">
+                    Submit
+                </button>
             </form>
+
 
             {loading && <p>Loading recipes...</p>}
 
+            {saveMessage && (
+            <p className="text-green-600 font-medium">{saveMessage}</p>
+            )}
+            
             {!loading && recipes.length > 0 && (
-                <div>
-                    <RecipeList recipes = {recipes}/>
-                </div>
+                <RecipeList recipes = {recipes} onRecipeClick={handleRecipeClick}/>
             )}
         </div>
     );
