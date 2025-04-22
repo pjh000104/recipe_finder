@@ -1,7 +1,7 @@
 'use server'; 
 
 import { db, recipes } from './lib/db';
-import { like, or, eq, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
 
 
