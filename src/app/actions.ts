@@ -1,8 +1,9 @@
-'use server'; // Mark this file as containing Server Actions
+'use server'; 
 
 import { db, recipes } from './lib/db';
 import { like, or, eq, and, sql } from "drizzle-orm";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
+
 
 
 
@@ -35,23 +36,26 @@ export interface Recipe {
 export async function searchRecipes(userIngredients: string[], keyword: string): Promise<Recipe[]> {
   if (userIngredients.length === 0 && !keyword) return []; // No search criteria
 
-  // Create SQL conditions to check if all userIngredients exist in ingredients
-  const containsAllIngredients = userIngredients.map(
-    ing => sql`ingredients LIKE ${'%' + ing + '%'}` 
-  );
-  console.log("searching for results");
+  const matchQuery = userIngredients.join(' ');
+
   const result = await db.all(
     sql`
-      SELECT id, name, ingredients, tags, steps,
+      SELECT r.id, r.name, r.ingredients, r.tags, r.steps,
       (
-        LENGTH(ingredients) - LENGTH(REPLACE(ingredients, ',', '')) + 1
+        LENGTH(r.ingredients) - LENGTH(REPLACE(r.ingredients, ',', '')) + 1
       ) - ${userIngredients.length} AS extraIngredientsCount
-      FROM recipes
-      WHERE ${sql.join(containsAllIngredients, sql` AND `)}
+      FROM recipes r
+      JOIN recipes_fts fts ON r.id = fts.rowid
+      WHERE fts.ingredients MATCH ${matchQuery}
+      AND (
+        (LENGTH(r.ingredients) - LENGTH(REPLACE(r.ingredients, ',', '')) + 1) - ${userIngredients.length}
+      ) <= 5
       ORDER BY extraIngredientsCount ASC
       LIMIT 10
     `
   );
+  
+  
   console.log(result);
 
 

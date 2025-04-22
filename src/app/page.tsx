@@ -3,6 +3,14 @@ import Link from "next/link"
 export default async function Page() {
   return (
     <div className="flex flex-col justify-center min-h-screen items-center gap-10">
+        <div className="absolute top-4 right-4">
+            <Link 
+                href="/saved"
+                className="text-blue-600 underline hover:text-blue-800 transition"
+            >
+                View Saved Recipes
+            </Link>
+        </div>
       <h2 className=" text-5xl">
           Recipe Search Application
       </h2>

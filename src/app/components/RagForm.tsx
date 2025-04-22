@@ -2,6 +2,7 @@
 import { testSupabaseSearch, Recipe } from "../actions";
 import { useState } from "react";
 import RecipeList from "./RecipeList";
+import Link from "next/link";
 
 export default function RagForm() {
     const [description, setDescription] = useState<string>("");
@@ -24,18 +25,32 @@ export default function RagForm() {
         setTimeout(() => setSaveMessage(null), 3000); 
     }
     
+    function sanitizeInput(input: string) {
+        return input.replace(/[<>{};$]/g, "").trim();
+      }
+
     function onDescriptionChange(e: React.ChangeEvent<HTMLInputElement>) {
         setDescription(e.target.value);
     }
     async function onFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setLoading(true); // Set loading to true before fetching
-        const result = await testSupabaseSearch(description);
-        setRecipes(result.topRecipes); // Store recipes in state
-        setLoading(false); // Set loading to false after fetching
+        const sanatizedDescription = sanitizeInput(description);
+        setLoading(true); 
+        
+        const result = await testSupabaseSearch(sanatizedDescription);
+        setRecipes(result.topRecipes); 
+        setLoading(false); 
     }
     return (
         <div className="flex flex-col items-center justify-center w-full gap-4">
+             <div className="absolute top-4 right-4">
+                <Link 
+                    href="/saved"
+                    className="text-blue-600 underline hover:text-blue-800 transition"
+                >
+                    View Saved Recipes
+                </Link>
+            </div>
             <form onSubmit={onFormSubmit}>
                 <p>Input Description</p>
                 <input 
@@ -45,10 +60,12 @@ export default function RagForm() {
                     onChange={onDescriptionChange}
                 />
                 <button className=" ml-3  p-1 cursor-pointer transition-all bg-blue-500 text-white px-3 py-1 rounded-lg
-                                border-blue-600
+                                border-blue-600 disabled:opacity-50 disabled:cursor-not-allowed
                                 border-b-[4px]"
-                                type="submit">
-                        Submit
+                        type="submit"
+                        disabled={!description.trim()}
+                >
+                        Search
                 </button>
             </form>
             {loading && <p>Loading recipes...</p>}
