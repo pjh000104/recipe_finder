@@ -1,7 +1,7 @@
 "use server"
 import Form from "../components/form"
 
-
+// Ingredients/keywords based search page
 export default async function Page() {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center gap-3">

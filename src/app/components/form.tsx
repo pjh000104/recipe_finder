@@ -4,6 +4,7 @@ import { useState } from "react";
 import RecipeList from "./RecipeList";
 import Link from "next/link";
 
+// Form component for ingredients/keywords based search
 export default function Form() {
     const [ingredients, setIngredients] = useState<string>("");
     const [keywords, setKeywords] = useState<string>("");
@@ -11,6 +12,7 @@ export default function Form() {
     const [loading, setLoading] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+    // Saves recipes in locasl storage
     function handleRecipeClick(recipe: Recipe) {
         const existing = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
 
@@ -40,12 +42,13 @@ export default function Form() {
 
     async function onFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setLoading(true); // Set loading to true before fetching
+        setLoading(true); 
         const fetchedRecipes = await fetchRecipes();
-        setRecipes(fetchedRecipes); // Store recipes in state
+        setRecipes(fetchedRecipes); 
         setLoading(false); // Set loading to false after fetching
     }
 
+    // Sanitizes user input and fetches the recipes using server action. 
     async function fetchRecipes() {
         const sanitizedIngredients = sanitizeInput(ingredients);
         const sanitizedKeywords = sanitizeInput(keywords);

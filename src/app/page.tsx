@@ -1,5 +1,7 @@
 "use server"
 import Link from "next/link"
+
+// Homepage of the software
 export default async function Page() {
   return (
     <div className="flex flex-col justify-center min-h-screen items-center gap-10">

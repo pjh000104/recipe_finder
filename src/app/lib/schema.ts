@@ -13,7 +13,3 @@ export const recipes = sqliteTable('recipes', {
   n_ingredients: integer('n_ingredients').notNull(), 
   tags_embedding: text('tags_embedding').notNull(), // Embedding for tags  
 });
-
-// TypeScript types for the schema
-export type Recipe = typeof recipes.$inferSelect; 
-export type NewRecipe = typeof recipes.$inferInsert; 

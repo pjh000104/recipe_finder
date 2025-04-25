@@ -1,6 +1,7 @@
 import React from 'react';
 import { Recipe } from "../actions";
 
+// List component that displays the list of recipes
 const parseSteps = (stepsStr: string): string[] => {
   const matches = stepsStr.match(/'(.*?)'/g);
   if (!matches) return [];
@@ -21,7 +22,7 @@ const RecipeList = ({recipes, onRecipeClick,}: {recipes: Recipe[];onRecipeClick:
             <li key={index} 
               className="mb-4 p-3 border rounded">
               <p className="font-bold text-lg">{recipe.name}</p>
-              <button onClick={() => onRecipeClick(recipe)} className='bg-amber-400'>Save Recipe</button>
+              <button onClick={() => onRecipeClick(recipe)} className='bg-amber-400 px-1'>Save Recipe</button>
               <ul className="list-decimal list-inside mt-2 space-y-1">
                 {steps.map((step, i) => (
                   <li key={i}>{step}</li>

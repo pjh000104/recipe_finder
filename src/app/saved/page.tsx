@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Recipe } from "../actions";
 
+// Saved recipes page
 export default function SavedRecipesPage() {
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
 

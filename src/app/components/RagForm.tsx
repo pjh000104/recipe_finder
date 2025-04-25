@@ -1,15 +1,17 @@
 "use client";
-import { testSupabaseSearch, Recipe } from "../actions";
+import { SupabaseSearch, Recipe } from "../actions";
 import { useState } from "react";
 import RecipeList from "./RecipeList";
 import Link from "next/link";
 
+// Form component for description based search
 export default function RagForm() {
     const [description, setDescription] = useState<string>("");
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+    // Saves recipes in locasl storage
     function handleRecipeClick(recipe: Recipe) {
         const existing = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
 
@@ -32,15 +34,18 @@ export default function RagForm() {
     function onDescriptionChange(e: React.ChangeEvent<HTMLInputElement>) {
         setDescription(e.target.value);
     }
+
+    // Sanatizes user input and preforms description based search function from actions.ts
     async function onFormSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const sanatizedDescription = sanitizeInput(description);
         setLoading(true); 
         
-        const result = await testSupabaseSearch(sanatizedDescription);
+        const result = await SupabaseSearch(sanatizedDescription);
         setRecipes(result.topRecipes); 
         setLoading(false); 
     }
+
     return (
         <div className="flex flex-col items-center justify-center w-full gap-4">
              <div className="absolute top-4 right-4">

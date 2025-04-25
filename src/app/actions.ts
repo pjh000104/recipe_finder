@@ -1,10 +1,12 @@
 'use server'; 
 
+// Actions.ts contains all server functions
 import { db, recipes } from './lib/db';
 import { eq, sql } from "drizzle-orm";
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/huggingface_transformers";
-
-
+import { ChatGroq } from "@langchain/groq";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createClient } from '@supabase/supabase-js';
 
 
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
@@ -23,12 +25,13 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
+// Defines type recipe
 export interface Recipe {
   id: number;
   name: string;
   ingredients: string;
   extraIngredientsCount: number;
-  similarity?: number; // This will store the cosine similarity
+  similarity?: number; 
   tags: string;
   steps: string;
 }
@@ -102,12 +105,6 @@ export async function searchRecipes(userIngredients: string[], keyword: string):
 }
 
 
-
-import { ChatGroq } from "@langchain/groq";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { createClient } from '@supabase/supabase-js';
-
-
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
@@ -131,7 +128,7 @@ export async function getRecipeById(recipeId: number): Promise<Recipe | null> {
 }
 
 
-export async function testSupabaseSearch(description: string): Promise<{
+export async function SupabaseSearch(description: string): Promise<{
   explanation: string;
   topRecipes: Recipe[];
 }> {
@@ -198,9 +195,10 @@ export async function testSupabaseSearch(description: string): Promise<{
       ),
     ]);
 
+    // 6. Return top 3 full recipies
     return {
       explanation: response.text,
-      topRecipes: topRecipes.slice(0, 3), // Return top 3 full recipes
+      topRecipes: topRecipes.slice(0, 3), 
     };
   } catch (error) {
     console.error("Error testing Supabase vector search with Groq RAG:", error);
@@ -210,4 +208,7 @@ export async function testSupabaseSearch(description: string): Promise<{
     };
   }
 }
+
+
+
 
