@@ -29,6 +29,7 @@ export default function SavedRecipesPage() {
                     {savedRecipes.map((recipe, index) => (
                         <li key={index} className="p-4 border rounded shadow relative">
                             <p className="text-lg font-semibold mb-2">{recipe.name}</p>
+                            <p><span className="font-semibold">Ingredients: </span>{recipe.ingredients.slice(1,-1)}</p>
                             <ul className="list-decimal list-inside mt-2 space-y-1">
                                 {recipe.steps
                                     .match(/'(.*?)'/g)
