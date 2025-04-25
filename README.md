@@ -1,4 +1,4 @@
-# Recipe Finder Application
+# Recipe Recommendation System
 This project is a simple yet powerful web-based **recipe suggestion system** built using **Retrieval-Augmented Generation (RAG)**. The system is designed to help users find creative and compatible recipes based on leftover ingredients, emphasizing **simplicity**, **usability**, and **personalization**.
 
 ##  Features
