@@ -14,7 +14,7 @@ export default async function Page() {
             </Link>
         </div>
       <h2 className=" text-5xl">
-          Recipe Search Application
+          Recipe Recommendation Application
       </h2>
       <div className="flex items-center justify-center  gap-6">
 
